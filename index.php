@@ -27,18 +27,32 @@ foreach ($dbh->query($sql) as $row) {
 	<body>
 		<h1>Todoアプリ</h1>
 		<p>Todo件数：<?php echo count($tasks); ?>件</p>
-		<ul>
+		<ul id="tasks">
 			<?php foreach ($tasks as $task) : ?>
 				<li id="task_<?php echo h($task['id']); ?>" data-id="<?php echo h($task['id']); ?>">
 					<input type="checkbox" class="checkTask" <?php if ($task['type']=="done") echo "checked"; ?>>
 					<span class="<?php echo h($task['type']); ?>"><?php echo h($task['title']); ?></span>
 					<span class="deleteTask">[削除]</span>
+					<span class="drag">[ここを引っ張って！]</span>
 				</li>
 			<?php endforeach ; ?>
 		</ul>
 		<script>
 			$(function() {
 
+				// ここでドラッグできるようにしている
+				$('#tasks').sortable({
+					axis: 'y',
+					opacity: 0.2,
+					handle: '.drag',
+					update: function() {
+						$.post('_ajax_sort_task.php', {
+							task: $(this).sortable('serialize')
+						});
+					}
+				});
+
+				// ここでチェックリストのjQueryを使っている
 				$(document).on('click', '.checkTask', function() {
 					var id = $(this).parent().data('id');
 					var title = $(this).next();
@@ -53,6 +67,7 @@ foreach ($dbh->query($sql) as $row) {
 					});
 				});
 
+				// ここで削除機能の実装をしている
 				$(document).on('click', '.deleteTask', function() {
 					if (confirm('本当に削除しますか？')) {
 						var id = $(this).parent().data('id');

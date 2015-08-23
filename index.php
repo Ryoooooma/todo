@@ -32,6 +32,7 @@ foreach ($dbh->query($sql) as $row) {
 				<li id="task_<?php echo h($task['id']); ?>" data-id="<?php echo h($task['id']); ?>">
 					<input type="checkbox" class="checkTask" <?php if ($task['type']=="done") echo "checked"; ?>>
 					<span class="<?php echo h($task['type']); ?>"><?php echo h($task['title']); ?></span>
+					<span <?php if ($task['type']=='notyet') {echo 'class="editTask"';} ?>>[編集]</span>
 					<span class="deleteTask">[削除]</span>
 					<span class="drag">[ここを引っ張って！]</span>
 				</li>
@@ -39,6 +40,37 @@ foreach ($dbh->query($sql) as $row) {
 		</ul>
 		<script>
 			$(function() {
+
+				// ここで編集ボタンを押した時に編集フォームが出るようにする
+				$(document).on('click', '.editTask', function() {
+					var id = $(this).parent().data('id');
+					var title = $(this).prev().text();
+					$('#task_'+id)
+						.empty()
+						.append($('<input type="text">').attr('value',title))
+						.append('<input type="button" value="更新" class="updateTask">');
+						$('#task_'+id+' input:eq(0)').focus();
+				});
+
+				// ここで編集フォームの更新ボタンを押した時に更新されるようにする
+				$(document).on('click', '.updateTask', function() {
+					var id = $(this).parent().data('id');
+					var title = $(this).prev().val();
+					$.post('_ajax_edit_task.php', {
+						id: id,
+						title: title
+					}, function(rs) {
+						var e = $(
+							'<input type="checkbox" class="checkTask"> ' +
+							'<span></span> ' +
+							'<span class="editTask">[編集]</span> ' +
+							'<span class="deleteTask">[削除]</span> ' +
+							'<span class="drag">[ここを引っ張って！]</span>'
+						);
+						$('#task_'+id).empty().append(e).find('span:eq(0)').text(title);
+					});
+				});
+
 
 				// ここでドラッグできるようにしている
 				$('#tasks').sortable({
@@ -60,9 +92,9 @@ foreach ($dbh->query($sql) as $row) {
 						id: id
 					}, function(rs) {
 						if (title.hasClass('done')) {
-							title.removeClass('done');
+							title.removeClass('done').next().addClass('editTask');
 						} else {
-							title.addClass('done');
+							title.addClass('done').next().removeClass('editTask');
 						}
 					});
 				});

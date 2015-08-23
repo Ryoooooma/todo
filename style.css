@@ -1,4 +1,4 @@
-.deleteTask, .drag {
+.deleteTask, .drag, .editTask{
 	cursor: pointer;
 	color: blue;
 }

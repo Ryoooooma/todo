@@ -26,6 +26,10 @@ foreach ($dbh->query($sql) as $row) {
 	</head>
 	<body>
 		<h1>Todoアプリ</h1>
+		<p>
+			<input type="text" id="title">
+			<input type="button" id="addTask" value="追加">
+		</p>
 		<p>Todo件数：<?php echo count($tasks); ?>件</p>
 		<ul id="tasks">
 			<?php foreach ($tasks as $task) : ?>
@@ -40,6 +44,28 @@ foreach ($dbh->query($sql) as $row) {
 		</ul>
 		<script>
 			$(function() {
+
+				$('#title').focus();
+
+
+				$('#addTask').click(function() {
+					var title = $('#title').val();
+					$.post('_ajax_add_task.php', {
+						title: title
+					}, function(rs) {
+						var e = $(
+							'<li id="task_'+rs+'" data-id="'+rs+'"> ' +
+							'<input type="checkbox" class="checkTask"> ' +
+							'<span></span> ' +
+							'<span class="editTask">[編集]</span> ' +
+							'<span class="deleteTask">[削除]</span> ' +
+							'<span class="drag">[ここを引っ張って！]</span> ' +
+							'</li>'
+						);
+						$('#tasks').append(e).find('li:last span:eq(0)').text(title);
+						$('#title').val('').focus();
+					});
+				});
 
 				// ここで編集ボタンを押した時に編集フォームが出るようにする
 				$(document).on('click', '.editTask', function() {
